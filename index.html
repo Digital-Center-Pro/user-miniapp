@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Center</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            color: white;
+            padding: 12px;
+        }
+        
+        .container { max-width: 500px; margin: 0 auto; }
+        
+        .user-bar {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 13px;
+        }
+        
+        .balance {
+            background: linear-gradient(45deg, #f09433, #e6683c);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            background: linear-gradient(45deg, #f09433, #e6683c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .service-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        .service-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .service-card:hover { transform: translateY(-2px); }
+        .service-card:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
+        
+        .service-icon { font-size: 28px; margin-bottom: 6px; }
+        .service-name { font-size: 12px; font-weight: bold; margin-bottom: 8px; }
+        .service-price {
+            background: linear-gradient(45deg, #f09433, #e6683c);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .service-time { font-size: 9px; color: #aaa; margin-top: 4px; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 18px;
+            padding: 22px;
+            width: 92%;
+            max-width: 380px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 11px;
+            margin: 4px 0;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-confirm { background: linear-gradient(45deg, #4CAF50, #45a049); color: white; }
+        .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
+        
+        .support-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #25A366;
+            color: #25A366;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .support-btn:hover { background: rgba(37,163,102,0.2); }
+        
+        .support-bar {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <div class="user-bar">
+            <span id="userName">👤 Loading...</span>
+            <span class="balance" id="userBalance">💰 ...</span>
+        </div>
+        
+        <div class="header">
+            <h1>🔥 Digital Center</h1>
+            <p style="color:#ccc;font-size:12px;">বিশ্বস্ত সেবা, দ্রুত ডেলিভারি</p>
+        </div>
+        
+        <div class="service-grid" id="serviceGrid"></div>
+        
+        <div class="support-bar">
+            <a href="https://t.me/Siam_Admin_Desk" target="_blank" class="support-btn">
+                💬 হেল্প সাপোর্ট
+            </a>
+        </div>
+        
+        <div class="footer">
+            <p>⭐ ৪.৯/৫ | ১০০০০+ অর্ডার | ২৪/৭</p>
+        </div>
+    </div>
+    
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="text-align:center;margin-bottom:12px;"></h3>
+            <div id="modalInputs"></div>
+            <button class="btn btn-confirm" onclick="submitOrder()">✅ অর্ডার কনফার্ম</button>
+            <button class="btn btn-cancel" onclick="closeOrderModal()">❌ বাতিল</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+        
+        const user = tg.initDataUnsafe?.user || {};
+        const userId = user.id || 'unknown';
+        const userName = user.first_name || 'User';
+        
+        // GMS Hosting থেকে পাওয়া API URL
+        const API_URL = 'https://your-gms-bot-url.com';
+        
+        document.getElementById('userName').textContent = `👤 ${userName}`;
+        
+        async function loadUserData() {
+            try {
+                const res = await fetch(`${API_URL}/api/user/${userId}`);
+                const data = await res.json();
+                if (data.name) {
+                    document.getElementById('userName').textContent = `👤 ${data.name}`;
+                    document.getElementById('userBalance').textContent = `💰 ${data.balance} টাকা`;
+                } else {
+                    document.getElementById('userBalance').textContent = '💰 0 টাকা';
+                }
+            } catch(e) {
+                document.getElementById('userBalance').textContent = '💰 0 টাকা';
+            }
+        }
+        loadUserData();
+        
+        const services = {
+            's1': { name: 'NID কার্ড PDF', price: '180', time: '10-20 মিনিট', icon: '🪪', inputs: ['নাম', 'NID নম্বর', 'জন্ম তারিখ'] },
+            's2': { name: 'স্মার্ট কার্ড PDF', price: '350', time: '30 মিনিট', icon: '💳', inputs: ['নাম', 'NID নম্বর', 'জন্ম তারিখ'] },
+            's3': { name: 'সার্ভার কপি', price: '120', time: '10-20 মিনিট', icon: '🖥️', inputs: ['নাম', 'NID নম্বর', 'জন্ম তারিখ'] },
+            's4': { name: 'হারানো এনআইডি', price: '1200', time: '1-2 ঘণ্টা', icon: '🔍', inputs: ['নাম', 'পিতার নাম', 'মাতার নাম', 'ঠিকানা'] },
+            's5': { name: 'Nid সংশোধন কপি', price: '200', time: '10-20 মিনিট', icon: '✏️', inputs: ['NID নম্বর', 'জন্ম তারিখ'] },
+            's6': { name: 'Passport SB Copy', price: '1400', time: 'অফিস টাইমে', icon: '🛂', inputs: ['নাম', 'Passport No'] },
+            's7': { name: 'ই-টিন সার্টিফিকেট', price: '200', time: '10-20 মিনিট', icon: '📄', inputs: ['নাম', 'e-Tin No'] },
+            's8': { name: 'নম্বর টু লোকেশন', price: '800', time: '20-30 মিনিট', icon: '📍', inputs: ['মোবাইল নাম্বার'] },
+            's9': { name: 'সিম মালিকানা তথ্য', price: '600', time: '20-30 মিনিট', icon: '📱', inputs: ['সিম নম্বর'] }
+        };
+        
+        let selectedService = null;
+        const grid = document.getElementById('serviceGrid');
+        
+        Object.entries(services).forEach(([id, s]) => {
+            const card = document.createElement('div');
+            card.className = 'service-card';
+            card.innerHTML = `
+                <div class="service-icon">${s.icon}</div>
+                <div class="service-name">${s.name}</div>
+                <div class="service-price">💰 ${s.price} টাকা</div>
+                <div class="service-time">⏱️ ${s.time}</div>
+            `;
+            card.onclick = () => openModal(id, s);
+            grid.appendChild(card);
+        });
+        
+        function openModal(id, service) {
+            selectedService = {id, ...service};
+            document.getElementById('modalTitle').innerHTML = `${service.icon} ${service.name}<br><small style="color:#f09433;">💰 ${service.price} টাকা</small>`;
+            
+            const div = document.getElementById('modalInputs');
+            div.innerHTML = '';
+            service.inputs.forEach((ph, i) => {
+                const inp = document.createElement('input');
+                inp.type = 'text';
+                inp.placeholder = '✍️ ' + ph;
+                inp.id = `input_${i}`;
+                div.appendChild(inp);
+            });
+            
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+        
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+        
+        function submitOrder() {
+            const answers = [];
+            let valid = true;
+            
+            selectedService.inputs.forEach((_, i) => {
+                const inp = document.getElementById(`input_${i}`);
+                if (!inp.value.trim()) {
+                    valid = false;
+                    inp.style.border = '2px solid red';
+                } else {
+                    inp.style.border = '1px solid rgba(255,255,255,0.3)';
+                    answers.push(inp.value.trim());
+                }
+            });
+            
+            if (!valid) {
+                tg.showPopup({ title: '⚠️ সতর্কতা', message: 'সকল তথ্য পূরণ করুন!' });
+                return;
+            }
+            
+            tg.sendData(JSON.stringify({
+                action: 'order',
+                service_id: selectedService.id,
+                answers: answers
+            }));
+            
+            closeOrderModal();
+            
+            document.getElementById('mainContainer').innerHTML = `
+                <div style="text-align:center;padding:40px 20px;">
+                    <h1 style="font-size:60px;">✅</h1>
+                    <h2 style="color:#4CAF50;margin:15px 0;">অর্ডার সফল!</h2>
+                    <p>📦 ${selectedService.name}</p>
+                    <p style="color:#f09433;">💰 ${selectedService.price} টাকা</p>
+                    <p style="color:#aaa;margin-top:20px;font-size:13px;">বটে কনফার্মেশন মেসেজ আসছে...</p>
+                    <button class="btn" style="background:#2196F3;color:white;margin-top:15px;" onclick="tg.close()">🔙 বটে ফিরুন</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
